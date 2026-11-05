@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Registro Km y Euros</title>
+<style>
+  :root{--bg:#0f172a;--card:#1e293b;--txt:#f1f5f9;--mut:#94a3b8;--acc:#22c55e;--acc2:#16a34a;--bad:#ef4444;--bd:#334155}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,Roboto,sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+  h1{font-size:1.1rem;margin:16px 0 4px;color:var(--mut);font-weight:600;text-align:center}
+  #clock{text-align:center;font-size:2rem;font-weight:700;font-variant-numeric:tabular-nums}
+  #date{text-align:center;color:var(--mut);margin-bottom:18px;text-transform:capitalize}
+  #big{display:block;width:100%;max-width:360px;aspect-ratio:1;margin:0 auto 12px;border-radius:50%;border:0;background:radial-gradient(circle at 30% 30%,var(--acc),var(--acc2));color:#04210f;font-size:1.6rem;font-weight:800;box-shadow:0 10px 30px #22c55e55;cursor:pointer}
+  #big:active{transform:scale(.97)}
+  #big:disabled{opacity:.6}
+  #status{text-align:center;color:var(--mut);min-height:1.4em;font-size:.9rem;margin-bottom:18px}
+  .tot{display:flex;gap:10px;margin-bottom:14px}
+  .tot div{flex:1;background:var(--card);border-radius:12px;padding:10px;text-align:center}
+  .tot b{display:block;font-size:1.2rem}.tot span{color:var(--mut);font-size:.75rem}
+  .bar{display:flex;gap:8px;margin-bottom:10px}
+  .btn{flex:1;background:var(--card);color:var(--txt);border:1px solid var(--bd);border-radius:10px;padding:10px;font-size:.9rem}
+  .item{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;position:relative}
+  .item .h{font-weight:600}.item .m{color:var(--mut);font-size:.82rem;margin-top:2px}
+  .item .v{margin-top:6px;font-size:1.05rem}
+  .item a{color:#7dd3fc}
+  .item .x{position:absolute;right:8px;top:8px;background:none;border:0;color:var(--mut);font-size:1.2rem;padding:6px}
+  .empty{color:var(--mut);text-align:center;padding:16px}
+  #banner{display:none;background:#78350f;border:1px solid #f59e0b;border-radius:12px;padding:12px;margin-bottom:12px;font-size:.9rem}
+  #banner.on{display:block}
+  #banner button{margin-top:8px;width:100%;background:#f59e0b;color:#1c1100;border:0;border-radius:8px;padding:10px;font-weight:700}
+  details{background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+  summary{cursor:pointer;font-weight:600}
+  details input{font-size:.9rem;padding:10px}
+  details p{color:var(--mut);font-size:.78rem;line-height:1.4;margin:8px 0 0}
+  details .btn{margin-top:10px;width:100%}
+  #ov{position:fixed;inset:0;background:#000a;display:none;align-items:flex-end;justify-content:center;z-index:9}
+  #ov.on{display:flex}
+  form{background:var(--card);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom))}
+  form h2{margin:0 0 4px}
+  #info{color:var(--mut);font-size:.82rem;margin-bottom:14px;line-height:1.4}
+  label{display:block;font-size:.85rem;color:var(--mut);margin:10px 0 4px}
+  input{width:100%;background:var(--bg);border:1px solid var(--bd);color:var(--txt);border-radius:10px;padding:14px;font-size:1.3rem}
+  input.n{font-size:.95rem}
+  .row{display:flex;gap:10px;margin-top:18px}
+  .row button{flex:1;padding:14px;border-radius:10px;border:0;font-size:1rem;font-weight:700}
+  .ok{background:var(--acc);color:#04210f}.ko{background:var(--bd);color:var(--txt)}
+</style>
+</head>
+<body>
+<h1>Registro de carreras / trayectos</h1>
+<div id="clock">--:--:--</div>
+<div id="date"></div>
+<button id="big">REGISTRAR</button>
+<div id="status"></div>
+<div id="banner"><span id="bmsg"></span><button id="bsend">Enviar reporte ahora</button></div>
+<details>
+  <summary>⚙ Reporte diario por email</summary>
+  <label for="cEmail">Email destino</label>
+  <input id="cEmail" class="n" type="email" value="javiermarcosfernandez@gmail.com">
+  <label for="cEnd">Endpoint de envío automático (Formspree, opcional)</label>
+  <input id="cEnd" class="n" type="url" placeholder="https://formspree.io/f/xxxxxxxx">
+  <p>Con endpoint: el reporte se envía solo cada 24 h (cuando la app está abierta o al abrirla). Sin endpoint: aparece un aviso cada 24 h y se abre tu app de correo con el reporte listo para pulsar Enviar.</p>
+  <p id="lastSent"></p>
+  <button class="btn" id="cSave">Guardar ajustes</button>
+  <button class="btn" id="cNow">Enviar reporte ahora</button>
+</details>
+
+<div class="tot">
+  <div><b id="tK">0</b><span>km total</span></div>
+  <div><b id="tE">0 €</b><span>euros total</span></div>
+  <div><b id="tN">0</b><span>registros</span></div>
+</div>
+<div class="bar">
+  <button class="btn" id="csv">Exportar CSV</button>
+  <button class="btn" id="copy">Copiar</button>
+  <button class="btn" id="clear">Borrar todo</button>
+</div>
+<div id="list"></div>
+
+<div id="ov">
+  <form id="f" autocomplete="off">
+    <h2>Nuevo registro</h2>
+    <div id="info"></div>
+    <label for="km">Kilómetros</label>
+    <input id="km" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0" required>
+    <label for="eu">Euros</label>
+    <input id="eu" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00" required>
+    <label for="nt">Notas (opcional)</label>
+    <input id="nt" class="n" type="text" placeholder="Ej: Cabify, efectivo…">
+    <div class="row">
+      <button type="button" class="ko" id="cancel">Cancelar</button>
+      <button type="submit" class="ok">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  var KEY='registro_km_euros_v1', recs=[], cur=null;
+  var $=function(i){return document.getElementById(i)};
+  try{recs=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){recs=[]}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(recs))}catch(e){}}
+  var pad=function(n){return String(n).padStart(2,'0')};
+  function fDate(d){return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()}
+  function fTime(d){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
+  function tick(){var d=new Date();$('clock').textContent=fTime(d);
+    $('date').textContent=d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+  tick();setInterval(tick,1000);
+
+  function getPos(){return new Promise(function(res){
+    if(!navigator.geolocation)return res({err:'Geolocalización no disponible'});
+    navigator.geolocation.getCurrentPosition(function(p){
+      res({lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)});
+    },function(e){
+      var m={1:'Permiso de ubicación denegado',2:'Ubicación no disponible',3:'Tiempo agotado buscando ubicación'};
+      res({err:m[e.code]||'Error de ubicación'});
+    },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  })}
+
+  $('big').onclick=async function(){
+    var now=new Date(); // hora exacta de la pulsación
+    $('big').disabled=true;$('status').textContent='Obteniendo ubicación…';
+    var pos=await getPos();
+    cur={id:now.getTime(),iso:now.toISOString(),fecha:fDate(now),hora:fTime(now),
+         lat:pos.lat,lon:pos.lon,acc:pos.acc,err:pos.err};
+    $('big').disabled=false;
+    $('status').textContent=pos.err?('⚠ '+pos.err):'Ubicación registrada ✓';
+    $('info').innerHTML=cur.fecha+' · '+cur.hora+'<br>'+(pos.err?('⚠ '+pos.err+' (se guardará sin ubicación)'):
+      '📍 '+pos.lat.toFixed(5)+', '+pos.lon.toFixed(5)+' (±'+pos.acc+' m)');
+    $('km').value='';$('eu').value='';$('nt').value='';
+    $('ov').classList.add('on');setTimeout(function(){$('km').focus()},100);
+  };
+  $('cancel').onclick=function(){$('ov').classList.remove('on');cur=null};
+  $('f').onsubmit=function(e){
+    e.preventDefault();if(!cur)return;
+    cur.km=parseFloat($('km').value)||0;
+    cur.eur=parseFloat($('eu').value)||0;
+    cur.nota=$('nt').value.trim();
+    recs.unshift(cur);save();cur=null;
+    $('ov').classList.remove('on');render();
+  };
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function render(){
+    var k=0,e=0;recs.forEach(function(r){k+=r.km;e+=r.eur});
+    $('tK').textContent=k.toFixed(1).replace('.',',');
+    $('tE').textContent=e.toFixed(2).replace('.',',')+' €';
+    $('tN').textContent=recs.length;
+    if(!recs.length){$('list').innerHTML='<div class="empty">Aún no hay registros.</div>';return}
+    $('list').innerHTML=recs.map(function(r,i){
+      var loc=r.lat!=null?'<a target="_blank" rel="noopener" href="https://www.google.com/maps?q='+r.lat+','+r.lon+'">📍 '+r.lat.toFixed(4)+', '+r.lon.toFixed(4)+'</a>':'sin ubicación';
+      return '<div class="item"><button class="x" data-i="'+i+'">✕</button>'+
+        '<div class="h">'+r.fecha+' · '+r.hora+'</div>'+
+        '<div class="m">'+loc+(r.nota?' · '+esc(r.nota):'')+'</div>'+
+        '<div class="v">'+r.km.toString().replace('.',',')+' km · '+r.eur.toFixed(2).replace('.',',')+' €</div></div>';
+    }).join('');
+  }
+  $('list').onclick=function(ev){
+    var b=ev.target.closest('.x');if(!b)return;
+    if(confirm('¿Borrar este registro?')){recs.splice(+b.dataset.i,1);save();render()}
+  };
+  $('clear').onclick=function(){
+    if(recs.length&&confirm('¿Borrar TODOS los registros?')){recs=[];save();render()}
+  };
+  function csvText(){
+    var q=function(s){return '"'+String(s==null?'':s).replace(/"/g,'""')+'"'};
+    var rows=[['Fecha','Hora','Latitud','Longitud','Precisión_m','Km','Euros','Notas']];
+    recs.slice().reverse().forEach(function(r){rows.push([r.fecha,r.hora,r.lat==null?'':r.lat,r.lon==null?'':r.lon,r.acc==null?'':r.acc,String(r.km).replace('.',','),r.eur.toFixed(2).replace('.',','),r.nota])});
+    return rows.map(function(r){return r.map(q).join(';')}).join('\r\n');
+  }
+  $('csv').onclick=function(){
+    if(!recs.length)return;
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['﻿'+csvText()],{type:'text/csv;charset=utf-8'}));
+    a.download='registro_'+new Date().toISOString().slice(0,10)+'.csv';
+    document.body.appendChild(a);a.click();a.remove();
+  };
+  $('copy').onclick=function(){
+    if(!recs.length)return;
+    (navigator.clipboard?navigator.clipboard.writeText(csvText()):Promise.reject()).then(function(){
+      $('status').textContent='Copiado al portapapeles ✓'},function(){$('status').textContent='No se pudo copiar'});
+  };
+  // ---------- Reporte cada 24 h ----------
+  var CK='registro_km_cfg_v1', DAY=24*3600*1000;
+  var cfg={email:'javiermarcosfernandez@gmail.com',endpoint:'',last:0,since:Date.now()};
+  try{var s=JSON.parse(localStorage.getItem(CK)||'null');if(s)for(var k in s)cfg[k]=s[k]}catch(e){}
+  function saveCfg(){try{localStorage.setItem(CK,JSON.stringify(cfg))}catch(e){}}
+  if(!cfg.last){cfg.last=cfg.since;saveCfg()} // primer ciclo de 24 h desde la primera apertura
+  $('cEmail').value=cfg.email;$('cEnd').value=cfg.endpoint;
+  function showLast(){$('lastSent').textContent='Último reporte: '+(cfg.sentOnce?new Date(cfg.last).toLocaleString('es-ES'):'ninguno todavía')}
+  showLast();
+  $('cSave').onclick=function(){
+    cfg.email=$('cEmail').value.trim()||cfg.email;cfg.endpoint=$('cEnd').value.trim();saveCfg();
+    $('status').textContent='Ajustes guardados ✓';checkDue();
+  };
+  function report(){
+    var k=0,e=0;recs.forEach(function(r){k+=r.km;e+=r.eur});
+    var head='Reporte de registros — '+new Date().toLocaleString('es-ES')+'\n'+
+      'Registros: '+recs.length+' | Km: '+k.toFixed(1).replace('.',',')+' | Euros: '+e.toFixed(2).replace('.',',')+' €\n\n';
+    return head+csvText();
+  }
+  async function sendReport(manual){
+    if(!recs.length){$('status').textContent='No hay registros que enviar';return false}
+    var txt=report(),subj='Reporte registros km/euros '+fDate(new Date());
+    if(cfg.endpoint){
+      try{
+        var r=await fetch(cfg.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body:JSON.stringify({email:cfg.email,_subject:subj,message:txt})});
+        if(!r.ok)throw new Error(r.status);
+        cfg.last=Date.now();cfg.sentOnce=true;saveCfg();showLast();banner(false);
+        $('status').textContent='Reporte enviado ✓';return true;
+      }catch(err){$('status').textContent='⚠ Falló el envío automático; se usará el correo manual'}
+    }
+    // Sin endpoint (o fallo): abre la app de correo con el reporte
+    var body=txt.length>1800?txt.slice(0,1800)+'\n…(recortado; usa Exportar CSV para el completo)':txt;
+    try{navigator.clipboard&&navigator.clipboard.writeText(txt)}catch(e){}
+    cfg.last=Date.now();cfg.sentOnce=true;saveCfg();showLast();banner(false);
+    location.href='mailto:'+encodeURIComponent(cfg.email)+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);
+    return true;
+  }
+  function banner(on){$('banner').classList.toggle('on',on)}
+  var busy=false;
+  async function checkDue(){
+    if(busy||Date.now()-cfg.last<DAY)return;
+    if(!recs.length){cfg.last=Date.now();saveCfg();return}
+    if(cfg.endpoint){busy=true;await sendReport(false);busy=false}
+    else{$('bmsg').textContent='📧 Han pasado 24 h: toca para enviar el reporte a '+cfg.email;banner(true)}
+  }
+  $('bsend').onclick=function(){sendReport(true)};
+  $('cNow').onclick=function(){cfg.email=$('cEmail').value.trim()||cfg.email;cfg.endpoint=$('cEnd').value.trim();saveCfg();sendReport(true)};
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkDue()});
+  setInterval(checkDue,60000);checkDue();
+
+  render();
+})();
+</script>
+</body>
+</html>
